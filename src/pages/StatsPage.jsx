@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { BarChart3, Calendar } from "lucide-react";
+import { BarChart3, Calendar, TrendingUp } from "lucide-react";
 import Card from "../components/common/Card";
 import ActivityHeatmap from "../components/charts/ActivityHeatmap";
 import YearSummary from "../components/charts/YearSummary";
 import DayDetailPanel from "../components/charts/DayDetailPanel";
+import CategoryStreamChart from "../components/charts/CategoryStreamChart";
+import CategoryRankingList from "../components/charts/CategoryRankingList";
 import { getAllConversations } from "../db";
 import { getAvailableYears, summarizeYear } from "../utils/dateAggregation";
+import { aggregateCategoryByMonth } from "../utils/categoryTrend";
 
 export default function StatsPage({ onOpenConversation }) {
   const [conversations, setConversations] = useState([]);
@@ -33,6 +36,12 @@ export default function StatsPage({ onOpenConversation }) {
   const yearSummary = useMemo(
     () => summarizeYear(conversations, year),
     [conversations, year],
+  );
+
+  // 스트림그래프는 전체 기간 기준 (연도 필터와 별개)
+  const categoryTrend = useMemo(
+    () => aggregateCategoryByMonth(conversations),
+    [conversations],
   );
 
   const handleDayClick = (date, convs) => {
@@ -141,12 +150,52 @@ export default function StatsPage({ onOpenConversation }) {
         />
       )}
 
+      {/* 월별 관심사 변화 */}
+      <Card className="p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-100">
+              <TrendingUp className="h-4 w-4 text-purple-400" />
+              월별 관심사 변화
+            </h3>
+            <p className="mt-0.5 text-[11px] text-slate-500">
+              시간에 따른 카테고리별 대화량의 흐름 · 분석된 대화만 표시 · 스트림
+              위에서 움직여보세요
+            </p>
+          </div>
+        </div>
+
+        {categoryTrend.empty ? (
+          <div className="rounded-lg border border-dashed border-slate-800 bg-slate-900/30 p-8 text-center">
+            <p className="text-sm text-slate-400">
+              아직 분석된 대화가 없어요. 아카이브에서{" "}
+              <span className="text-indigo-300">전체 분석 시작</span>을
+              눌러주세요.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-5 lg:grid-cols-[1fr_240px]">
+            <div className="min-w-0">
+              <CategoryStreamChart
+                series={categoryTrend.series}
+                categories={categoryTrend.categories}
+              />
+            </div>
+            <div>
+              <CategoryRankingList
+                series={categoryTrend.series}
+                categories={categoryTrend.categories}
+              />
+            </div>
+          </div>
+        )}
+      </Card>
+
       {/* 다음 단계 예고 */}
       <Card className="border-dashed border-slate-800 bg-slate-900/30 p-6">
         <p className="text-xs text-slate-500">
           <span className="font-medium text-slate-400">곧 추가될 시각화</span>
-          {" · "}월별 관심사 변화 (스트림그래프) · 대화 간 유사도 링크 (포스
-          그래프)
+          {" · "}대화 간 유사도 링크 (포스 그래프)
         </p>
       </Card>
     </div>

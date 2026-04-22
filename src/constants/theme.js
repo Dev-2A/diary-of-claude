@@ -58,3 +58,19 @@ export const HEATMAP_COLORS = [
   "#6366f1", // 3
   "#a5b4fc", // 4+
 ];
+
+// 카테고리별 스트림그래프 색상 (HEX — D3용)
+export const CATEGORY_STREAM_COLORS = {
+  coding: "#60a5fa", // blue-400
+  writing: "#c084fc", // purple-400
+  learning: "#34d399", // emerald-400
+  brainstorm: "#fbbf24", // amber-400
+  debug: "#fb7185", // rose-400
+  design: "#f472b6", // pink-400
+  analysis: "#22d3ee", // cyan-400
+  personal: "#818cf8", // indigo-400
+  default: "#94a3b8", // slate-400
+};
+
+export const getCategoryStreamColor = (cat) =>
+  CATEGORY_STREAM_COLORS[cat] || CATEGORY_STREAM_COLORS.default;
