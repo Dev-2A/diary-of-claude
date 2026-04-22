@@ -40,7 +40,7 @@ export default function App() {
           />
         );
       case ROUTES.STATS:
-        return <StatsPage />;
+        return <StatsPage onOpenConversation={openConversation} />;
       case ROUTES.SEARCH:
         return <SearchPage />;
       case ROUTES.EXPORT:
