@@ -1,7 +1,17 @@
 import Card from "../components/common/Card";
-import { Upload, Library, BarChart3 } from "lucide-react";
+import {
+  Upload,
+  Library,
+  BarChart3,
+  MessageSquare,
+  Tag,
+  Database,
+} from "lucide-react";
+import { useDatabaseStats } from "../hooks/useDatabase";
 
 export default function HomePage({ onNavigate }) {
+  const { stats, loading } = useDatabaseStats();
+
   return (
     <div className="space-y-8">
       <div>
@@ -14,6 +24,26 @@ export default function HomePage({ onNavigate }) {
         </p>
       </div>
 
+      {/* DB 통계 카드 */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard
+          icon={<MessageSquare className="h-4 w-4 text-indigo-400" />}
+          label="저장된 대화"
+          value={loading ? "…" : stats.conversationCount.toLocaleString()}
+        />
+        <StatCard
+          icon={<Database className="h-4 w-4 text-purple-400" />}
+          label="메시지"
+          value={loading ? "…" : stats.messageCount.toLocaleString()}
+        />
+        <StatCard
+          icon={<Tag className="h-4 w-4 text-emerald-400" />}
+          label="등록된 태그"
+          value={loading ? "…" : stats.tagCount.toLocaleString()}
+        />
+      </div>
+
+      {/* 기능 소개 카드 */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="p-6" hoverable onClick={() => onNavigate("archive")}>
           <Upload className="h-6 w-6 text-indigo-400" />
@@ -40,5 +70,17 @@ export default function HomePage({ onNavigate }) {
         </Card>
       </div>
     </div>
+  );
+}
+
+function StatCard({ icon, label, value }) {
+  return (
+    <Card className="p-5">
+      <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-slate-500">
+        {icon}
+        {label}
+      </div>
+      <div className="mt-3 text-3xl font-bold text-slate-100">{value}</div>
+    </Card>
   );
 }
