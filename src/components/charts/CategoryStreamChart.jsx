@@ -19,10 +19,18 @@ export default function CategoryStreamChart({
   // 반응형: 컨테이너 너비 측정
   useEffect(() => {
     if (!containerRef.current) return;
+
+    // 1) 초기 마운트 시 즉시 한 번 측정
+    const initialWidth = containerRef.current.getBoundingClientRect().width;
+    if (initialWidth > 0) {
+      setDims((d) => ({ ...d, width: Math.max(300, initialWidth) }));
+    }
+
+    // 2) 이후 리사이즈 추적
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const w = Math.max(300, entry.contentRect.width);
-        setDims((d) => ({ ...d, width: w }));
+        setDims((d) => (d.width === w ? d : { ...d, width: w }));
       }
     });
     ro.observe(containerRef.current);
@@ -32,6 +40,8 @@ export default function CategoryStreamChart({
   // 차트 렌더링
   useEffect(() => {
     if (!svgRef.current || !series || series.length === 0) return;
+    if (!categories || categories.length === 0) return;
+    if (dims.width < 100) return; // 너비가 너무 작으면 스킵
 
     const { width, height } = dims;
     const innerW = width - MARGIN.left - MARGIN.right;
@@ -163,9 +173,26 @@ export default function CategoryStreamChart({
     );
   }
 
+  if (series.length < 2) {
+    return (
+      <div className="flex h-48 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-slate-800 px-6 text-center">
+        <p className="text-sm text-slate-300">
+          아직 흐름을 그릴 데이터가 부족해요
+        </p>
+        <p className="text-xs text-slate-500">
+          스트림그래프는 최소{" "}
+          <span className="text-indigo-300">2개월 이상</span>의 분석된 대화가
+          필요해요.
+          <br />
+          현재 모든 대화가 같은 달에 몰려 있어 곡선을 그릴 수 없어요.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div ref={containerRef} className="relative w-full">
-      <svg ref={svgRef} className="w-full" />
+      <svg ref={svgRef} className="w-full" style={{ minHeight: 320 }} />
 
       {tooltip && (
         <StreamTooltip tooltip={tooltip} containerWidth={dims.width} />

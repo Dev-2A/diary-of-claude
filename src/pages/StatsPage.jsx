@@ -6,15 +6,28 @@ import YearSummary from "../components/charts/YearSummary";
 import DayDetailPanel from "../components/charts/DayDetailPanel";
 import CategoryStreamChart from "../components/charts/CategoryStreamChart";
 import CategoryRankingList from "../components/charts/CategoryRankingList";
+import SimilarityGraph from "../components/charts/SimilarityGraph";
+import SimilarityControls from "../components/charts/SimilarityControls";
 import { getAllConversations } from "../db";
 import { getAvailableYears, summarizeYear } from "../utils/dateAggregation";
 import { aggregateCategoryByMonth } from "../utils/categoryTrend";
+import {
+  useSimilarityEngine,
+  useGraphData,
+} from "../hooks/useSimilarityEngine";
 
 export default function StatsPage({ onOpenConversation }) {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState(new Date().getFullYear());
   const [selectedDay, setSelectedDay] = useState(null);
+  const [threshold, setThreshold] = useState(0.3);
+
+  const similarityEngine = useSimilarityEngine();
+  const refreshKey = similarityEngine.result
+    ? similarityEngine.result.saved
+    : 0;
+  const { graph, loading: graphLoading } = useGraphData(threshold, refreshKey);
 
   useEffect(() => {
     let mounted = true;
@@ -26,7 +39,7 @@ export default function StatsPage({ onOpenConversation }) {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [similarityEngine.result]);
 
   const availableYears = useMemo(
     () => getAvailableYears(conversations),
@@ -38,11 +51,12 @@ export default function StatsPage({ onOpenConversation }) {
     [conversations, year],
   );
 
-  // 스트림그래프는 전체 기간 기준 (연도 필터와 별개)
   const categoryTrend = useMemo(
     () => aggregateCategoryByMonth(conversations),
     [conversations],
   );
+
+  const analyzedCount = conversations.filter((c) => c.is_analyzed).length;
 
   const handleDayClick = (date, convs) => {
     setSelectedDay({ date, conversations: convs });
@@ -140,7 +154,6 @@ export default function StatsPage({ onOpenConversation }) {
         />
       </Card>
 
-      {/* 선택된 날짜 상세 */}
       {selectedDay && (
         <DayDetailPanel
           date={selectedDay.date}
@@ -191,12 +204,39 @@ export default function StatsPage({ onOpenConversation }) {
         )}
       </Card>
 
-      {/* 다음 단계 예고 */}
-      <Card className="border-dashed border-slate-800 bg-slate-900/30 p-6">
-        <p className="text-xs text-slate-500">
-          <span className="font-medium text-slate-400">곧 추가될 시각화</span>
-          {" · "}대화 간 유사도 링크 (포스 그래프)
-        </p>
+      {/* 대화 간 유사도 그래프 */}
+      <Card className="space-y-4 p-5">
+        <SimilarityControls
+          threshold={threshold}
+          onThresholdChange={setThreshold}
+          nodeCount={graph.nodes.length}
+          linkCount={graph.links.length}
+          isRunning={similarityEngine.isRunning}
+          progress={similarityEngine.progress}
+          result={similarityEngine.result}
+          onRun={similarityEngine.run}
+          onCancel={similarityEngine.cancel}
+        />
+
+        {analyzedCount < 2 ? (
+          <div className="rounded-lg border border-dashed border-slate-800 bg-slate-900/30 p-8 text-center">
+            <p className="text-sm text-slate-400">
+              유사도 그래프를 보려면 분석된 대화가 2개 이상 필요해요.
+            </p>
+          </div>
+        ) : graph.links.length === 0 && !similarityEngine.isRunning ? (
+          <div className="rounded-lg border border-dashed border-slate-800 bg-slate-900/30 p-8 text-center">
+            <p className="text-sm text-slate-400">
+              아직 계산된 유사도가 없거나, 현재 임계값({threshold.toFixed(2)})에
+              맞는 연결이 없어요.
+              <br />
+              <span className="text-indigo-300">유사도 재계산</span> 버튼을 눌러
+              시작해주세요.
+            </p>
+          </div>
+        ) : (
+          <SimilarityGraph graph={graph} onNodeClick={onOpenConversation} />
+        )}
       </Card>
     </div>
   );
