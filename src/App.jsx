@@ -42,7 +42,7 @@ export default function App() {
       case ROUTES.STATS:
         return <StatsPage onOpenConversation={openConversation} />;
       case ROUTES.SEARCH:
-        return <SearchPage />;
+        return <SearchPage onOpenConversation={openConversation} />;
       case ROUTES.EXPORT:
         return <ExportPage />;
       case ROUTES.SETTINGS:
