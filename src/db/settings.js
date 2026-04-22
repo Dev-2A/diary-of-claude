@@ -1,6 +1,6 @@
 import { db } from "./database";
 
-export const SETTINGS_KEYS = {
+export const SETTING_KEYS = {
   ANTHROPIC_API_KEY: "anthropic_api_key",
   ANTHROPIC_MODEL: "anthropic_model",
   THEME: "THEME",

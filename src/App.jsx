@@ -9,6 +9,7 @@ import SearchPage from "./pages/SearchPage";
 import ExportPage from "./pages/ExportPage";
 import SettingsPage from "./pages/SettingsPage";
 import { ROUTES } from "./constants/routes";
+import { ApiKeyProvider } from "./contexts/ApiKeyContext";
 
 export default function App() {
   const [route, setRoute] = useState(ROUTES.HOME);
@@ -33,16 +34,18 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-slate-200">
-      <Header />
+    <ApiKeyProvider>
+      <div className="min-h-screen bg-[#0a0a0f] text-slate-200">
+        <Header onNavigate={setRoute} />
 
-      <div className="mx-auto flex max-w-7xl">
-        <Sidebar currentRoute={route} onNavigate={setRoute} />
+        <div className="mx-auto flex max-w-7xl">
+          <Sidebar currentRoute={route} onNavigate={setRoute} />
 
-        <main className="flex-1 px-6 py-8 pb-24 md:pb-8">{renderPage()}</main>
+          <main className="flex-1 px-6 py-8 pb-24 md:pb-8">{renderPage()}</main>
+        </div>
+
+        <BottomNav currentRoute={route} onNavigate={setRoute} />
       </div>
-
-      <BottomNav currentRoute={route} onNavigate={setRoute} />
-    </div>
+    </ApiKeyProvider>
   );
 }

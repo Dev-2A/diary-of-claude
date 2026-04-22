@@ -1,6 +1,9 @@
-import { BookOpen } from "lucide-react";
+import { BookOpen, Key, KeyRound } from "lucide-react";
+import { useApiKey } from "../../hooks/useApiKey";
 
-export default function Header() {
+export default function Header({ onNavigate }) {
+  const { hasKey, loading } = useApiKey();
+
   return (
     <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
@@ -18,10 +21,32 @@ export default function Header() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <span className="hidden rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300 sm:inline-block">
             💙 100% 로컬 처리
           </span>
+
+          {!loading && (
+            <button
+              onClick={() => onNavigate?.("settings")}
+              className={`
+                flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors
+                ${
+                  hasKey
+                    ? "border-indigo-500/30 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20"
+                    : "border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
+                }
+              `}
+              title={hasKey ? "API 키 등록 완료" : "API 키 미등록"}
+            >
+              {hasKey ? (
+                <KeyRound className="h-3 w-3" />
+              ) : (
+                <Key className="h-3 w-3" />
+              )}
+              {hasKey ? "키 등록됨" : "키 없음"}
+            </button>
+          )}
         </div>
       </div>
     </header>
