@@ -1,22 +1,34 @@
-import { useEffect, useState } from "react";
-import { Sparkles, MessageSquare, Calendar, KeyRound } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Sparkles, KeyRound } from "lucide-react";
 import FileDropzone from "../components/common/FileDropzone";
 import ImportProgress from "../components/common/ImportProgress";
 import AnalysisProgress from "../components/common/AnalysisProgress";
+import FilterBar from "../components/common/FilterBar";
+import ConversationCard from "../components/common/ConversationCard";
+import Pagination from "../components/common/Pagination";
 import Card from "../components/common/Card";
 import Button from "../components/common/Button";
-import TagBadge, { CategoryBadge } from "../components/common/TagBadge";
 import { useFileImport } from "../hooks/useFileImport";
 import { useAnalyzer } from "../hooks/useAnalyzer";
 import { useApiKey } from "../hooks/useApiKey";
 import { getAllConversations } from "../db";
+import {
+  applyFiltersAndSort,
+  DEFAULT_SORT_KEY,
+} from "../utils/conversationFilters";
 
-export default function ArchivePage() {
+const PAGE_SIZE = 12;
+
+export default function ArchivePage({ onOpenConversation }) {
   const importer = useFileImport();
   const analyzer = useAnalyzer();
   const { hasKey } = useApiKey();
 
   const [conversations, setConversations] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortKey, setSortKey] = useState(DEFAULT_SORT_KEY);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // 업로드·분석 완료 시 목록 갱신
   useEffect(() => {
@@ -28,6 +40,30 @@ export default function ArchivePage() {
       mounted = false;
     };
   }, [importer.result, analyzer.result]);
+
+  // 필터·검색·정렬 적용
+  const filtered = useMemo(
+    () =>
+      applyFiltersAndSort(conversations, {
+        categoryFilter,
+        searchQuery,
+        sortKey,
+      }),
+    [conversations, categoryFilter, searchQuery, sortKey],
+  );
+
+  // 페이지네이션
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageItems = filtered.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  );
+
+  // 필터·검색 변경 시 1페이지로 리셋
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, categoryFilter, sortKey]);
 
   const unanalyzedCount = conversations.filter((c) => !c.is_analyzed).length;
 
@@ -105,10 +141,10 @@ export default function ArchivePage() {
       )}
 
       {/* 대화 목록 */}
-      <div>
-        <div className="mb-3 flex items-center justify-between">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
-            저장된 대화 ({conversations.length})
+            저장된 대화
           </h3>
         </div>
 
@@ -117,60 +153,42 @@ export default function ArchivePage() {
             아직 저장된 대화가 없어요. 위 영역에 파일을 끌어다 놓아보세요.
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {conversations.slice(0, 12).map((conv) => (
-              <Card key={conv.id} className="p-4" hoverable>
-                <div className="flex items-start gap-2">
-                  <MessageSquare className="mt-1 h-4 w-4 shrink-0 text-indigo-400" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <h4 className="min-w-0 flex-1 truncate font-medium text-slate-100">{conv.title}</h4>
-                      {conv.tag_category && (
-                        <CategoryBadge category={conv.tag_category} size="xs" />
-                      )}
-                    </div>
+          <>
+            <FilterBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              categoryFilter={categoryFilter}
+              onCategoryChange={setCategoryFilter}
+              sortKey={sortKey}
+              onSortChange={setSortKey}
+              resultCount={filtered.length}
+              totalCount={conversations.length}
+            />
 
-                    <div className="mt-2 flex items-center gap-3 text-[11px] text-slate-500">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(conv.created_at).toLocaleDateString("ko-KR")}
-                      </span>
-                      <span>· {conv.message_count}개 메시지</span>
-                    </div>
-
-                    {conv.summary ? (
-                      <p className="mt-2 line-clamp-2 text-[11px] text-slate-300">
-                        {conv.summary}
-                      </p>
-                    ) : conv.raw_preview ? (
-                      <p className="mt-2 line-clamp-2 text-[11px] text-slate-400">
-                        {conv.raw_preview}
-                      </p>
-                    ) : null}
-
-                    {conv.tags && conv.tags.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {conv.tags.slice(0, 4).map((tag) => (
-                          <TagBadge
-                            key={tag}
-                            tag={tag}
-                            category={conv.tag_category}
-                            size="xs"
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
+            {filtered.length === 0 ? (
+              <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-slate-800 text-sm text-slate-500">
+                조건에 맞는 대화가 없어요.
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {pageItems.map((conv) => (
+                    <ConversationCard
+                      key={conv.id}
+                      conversation={conv}
+                      onClick={() => onOpenConversation?.(conv.id)}
+                    />
+                  ))}
                 </div>
-              </Card>
-            ))}
-          </div>
-        )}
 
-        {conversations.length > 12 && (
-          <p className="mt-3 text-center text-xs text-slate-500">
-            상위 12개만 표시 중 · 전체 목록은 Step 7에서 구현 예정
-          </p>
+                <Pagination
+                  currentPage={safePage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              </>
+            )}
+          </>
         )}
       </div>
     </div>
