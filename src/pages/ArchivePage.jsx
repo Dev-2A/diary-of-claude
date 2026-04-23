@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Sparkles, KeyRound } from "lucide-react";
-import FileDropzone from "../components/common/FileDropzone";
+import FileDropzone from "../components/common/FileDropZone";
 import ImportProgress from "../components/common/ImportProgress";
 import AnalysisProgress from "../components/common/AnalysisProgress";
 import FilterBar from "../components/common/FilterBar";
