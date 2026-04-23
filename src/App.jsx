@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "./components/layout/Header";
 import Sidebar from "./components/layout/Sidebar";
 import BottomNav from "./components/layout/BottomNav";
@@ -15,6 +15,11 @@ import { ApiKeyProvider } from "./contexts/ApiKeyContext";
 export default function App() {
   const [route, setRoute] = useState(ROUTES.HOME);
   const [detailId, setDetailId] = useState(null);
+
+  // 라우트 변경 시 스크롤 최상단으로
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [route, detailId]);
 
   const navigate = (next) => {
     setRoute(next);
@@ -60,7 +65,11 @@ export default function App() {
         <div className="mx-auto flex max-w-7xl">
           <Sidebar currentRoute={route} onNavigate={navigate} />
 
-          <main className="flex-1 px-6 py-8 pb-24 md:pb-8">{renderPage()}</main>
+          <main className="min-w-0 flex-1 px-4 py-6 pb-24 sm:px-6 sm:py-8 md:pb-8">
+            <div key={route} className="animate-fadeIn">
+              {renderPage()}
+            </div>
+          </main>
         </div>
 
         <BottomNav currentRoute={route} onNavigate={navigate} />

@@ -3,8 +3,8 @@ import { NAV_ITEMS } from "../../constants/routes";
 
 export default function Sidebar({ currentRoute, onNavigate }) {
   return (
-    <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-56 shrink-0 border-r border-slate-800 bg-slate-950/40 py-6 md:block">
-      <nav className="flex flex-col gap-1 px-3">
+    <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-56 shrink-0 border-r border-slate-800 bg-slate-950/40 md:flex md:flex-col">
+      <nav className="flex flex-col gap-1 px-3 pt-6">
         {NAV_ITEMS.map((item) => {
           const Icon = Icons[item.icon];
           const active = currentRoute === item.key;
@@ -13,7 +13,7 @@ export default function Sidebar({ currentRoute, onNavigate }) {
               key={item.key}
               onClick={() => onNavigate(item.key)}
               className={`
-                flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all
+                group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all
                 ${
                   active
                     ? "bg-indigo-500/15 text-indigo-300 shadow-inner shadow-indigo-500/5"
@@ -21,6 +21,9 @@ export default function Sidebar({ currentRoute, onNavigate }) {
                 }
               `}
             >
+              {active && (
+                <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-gradient-to-b from-indigo-400 to-purple-400" />
+              )}
               {Icon && <Icon className="h-4 w-4" />}
               {item.label}
             </button>
@@ -28,7 +31,7 @@ export default function Sidebar({ currentRoute, onNavigate }) {
         })}
       </nav>
 
-      <div className="mt-auto px-3 pt-8">
+      <div className="mt-auto px-3 py-4">
         <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
           <p className="text-[11px] leading-relaxed text-slate-500">
             모든 대화는 브라우저 내에서만 처리돼요. API 키와 원본 데이터는

@@ -1,10 +1,17 @@
 @import "tailwindcss";
 
+/* ================================================
+   Global Base Styles
+   ================================================ */
+
 :root {
   font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
-    Arial, sans-serif;
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Pretendard Variable",
+    Pretendard, Roboto, "Helvetica Neue", Arial, sans-serif;
   color-scheme: dark;
+  --scrollbar-track: rgba(15, 23, 42, 0.3);
+  --scrollbar-thumb: rgba(99, 102, 241, 0.3);
+  --scrollbar-thumb-hover: rgba(99, 102, 241, 0.5);
 }
 
 body {
@@ -12,6 +19,164 @@ body {
   min-height: 100vh;
   background: #0a0a0f;
   color: #e5e5e5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 배경 글로우 — 은은한 보라/인디고 방사 그라디언트 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse 1000px 600px at 20% 10%,
+      rgba(99, 102, 241, 0.08),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 800px 500px at 80% 80%,
+      rgba(168, 85, 247, 0.06),
+      transparent 70%
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* ================================================
+   Custom Scrollbar
+   ================================================ */
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* ================================================
+   Focus Styles (키보드 탐색)
+   ================================================ */
+
+*:focus-visible {
+  outline: 2px solid #818cf8;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #818cf8;
+  outline-offset: 2px;
+}
+
+/* 마우스 클릭에는 outline 숨김 */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ================================================
+   Selection
+   ================================================ */
+
+::selection {
+  background: rgba(99, 102, 241, 0.35);
+  color: #f1f5f9;
+}
+
+/* ================================================
+   Animations
+   ================================================ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+.animate-slideInRight {
+  animation: slideInRight 0.25s ease-out;
+}
+
+/* ================================================
+   Utility overrides
+   ================================================ */
+
+/* 모바일에서 input의 줌인 방지 (16px 미만 시 iOS 줌 발생) */
+@media (max-width: 640px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* 프린트 */
+@media print {
+  body::before {
+    display: none;
+  }
 }
 
 /* ================================================
